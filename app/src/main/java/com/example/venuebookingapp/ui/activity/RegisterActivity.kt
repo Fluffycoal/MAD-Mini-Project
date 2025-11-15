@@ -94,7 +94,7 @@ class RegisterActivity : AppCompatActivity() {
         // --- End Validation ---
 
         // Call the ViewModel to register
-        authViewModel.register(name, email, phone, password, role)
+        authViewModel.register(name, email, password, phone, role)
     }
 
     private fun observeViewModel() {

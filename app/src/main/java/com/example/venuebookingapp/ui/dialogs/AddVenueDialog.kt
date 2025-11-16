@@ -115,7 +115,7 @@ class AddVenueDialog : DialogFragment() {
             pricePerDay = price,
             amenities = amenities,
             imageUrl = imageUrl,
-            status = "PENDING"
+            status = "APPROVED"
         )
 
         onVenueAddedListener?.invoke(venue)

@@ -9,7 +9,6 @@ import com.example.venuebookingapp.ui.fragments.VenuesFragment
 import com.example.venuebookingapp.ui.fragments.BookingsFragment
 import com.example.venuebookingapp.ui.fragments.ProfileFragment
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -58,16 +57,14 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun loadFragment(fragment: Fragment) {
-        // Pass the user's ID and Role to every fragment
-        // This is how fragments will know who is logged in
+
         val bundle = Bundle()
         bundle.putInt("USER_ID", userId)
         bundle.putString("USER_ROLE", userRole)
         fragment.arguments = bundle
 
-        // ✅ ADDED: The core fragment transaction logic from Lecture 6
         supportFragmentManager.beginTransaction()
-        .replace(R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, fragment)
             .commit()
     }
 }

@@ -1,41 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF3E0"
-    tools:context=".ui.fragment.VenuesFragment">
+    tools:context=".ui.fragments.VenuesFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewVenues"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="8dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_venue" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="80dp">
+
+            <LinearLayout
+                android:id="@+id/layoutSearchBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/etSearchInput"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Search for venues..."
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp"
+                        android:background="@drawable/bg_search_rounded"
+                        android:drawableStart="@drawable/ic_baseline_search_24"
+                        android:drawablePadding="8dp"
+                        android:singleLine="true"
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/btnSearch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Search"
+                        android:backgroundTint="#FF6F00"/>
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:scrollbars="none">
+                </HorizontalScrollView>
+
+            </LinearLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:paddingHorizontal="16dp"
+                android:text="All Available Venues"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#FF6F00"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewVenues"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:paddingHorizontal="8dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_venue" />
+
+            <TextView
+                android:id="@+id/tvNoVenues"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No venues found. Try a different category."
+                android:textSize="16sp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddVenue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
         android:layout_margin="24dp"
         android:src="@drawable/ic_baseline_add_24"
         android:contentDescription="Add Venue"
+        app:backgroundTint="?attr/colorPrimary"
         app:tint="@android:color/white"
         android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/tvNoVenues"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="No venues available"
-        android:textSize="18sp"
-        android:layout_centerInParent="true"
-        android:visibility="gone"
-        tools:visibility="visible"/>
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

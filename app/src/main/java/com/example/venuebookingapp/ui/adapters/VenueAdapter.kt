@@ -12,8 +12,9 @@ import com.example.venuebookingapp.databinding.ItemVenueBinding
 class VenueAdapter(
     private val userRole: String,
     private val onVenueClick: (Venue) -> Unit,
-    private val onEditClick: (Venue) -> Unit,   // 1. ADDED THIS
-    private val onDeleteClick: (Venue) -> Unit // 2. ADDED THIS
+    private val onEditClick: (Venue) -> Unit,
+    private val onDeleteClick: (Venue) -> Unit,
+    private val onViewReviewsClick: (Venue) -> Unit // ✅ NEW PARAMETER
 ) : ListAdapter<Venue, VenueAdapter.VenueViewHolder>(VenueDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VenueViewHolder {
@@ -42,28 +43,32 @@ class VenueAdapter(
                 tvCapacity.text = "Capacity: ${venue.capacity}"
                 tvAmenities.text = venue.amenities
 
-                // Click listener for the whole item
+                // Click listener for the whole item (used by CLIENT)
                 root.setOnClickListener {
                     onVenueClick(venue)
                 }
 
-                // --- 3. ADDED THIS BLOCK ---
-                // Show/hide owner controls based on role
+                // --- Role-Based Controls ---
                 if (userRole == "VENUE_OWNER") {
                     layoutOwnerControls.isVisible = true
                 } else {
                     layoutOwnerControls.isVisible = false
                 }
 
-                // Set click listeners for the buttons
-                btnEdit.setOnClickListener {
-                    onEditClick(venue)
+                // Set click listeners for the Owner buttons
+                if (layoutOwnerControls.isVisible) {
+                    // This relies on the button IDs being: btnViewReviews, btnEdit, btnDelete
+                    binding.btnViewReviews.setOnClickListener {
+                        onViewReviewsClick(venue)
+                    }
+                    binding.btnEdit.setOnClickListener {
+                        onEditClick(venue)
+                    }
+                    binding.btnDelete.setOnClickListener {
+                        onDeleteClick(venue)
+                    }
                 }
-
-                btnDelete.setOnClickListener {
-                    onDeleteClick(venue)
-                }
-                // --- END OF ADDED BLOCK ---
+                // --- End Role-Based Controls ---
             }
         }
     }

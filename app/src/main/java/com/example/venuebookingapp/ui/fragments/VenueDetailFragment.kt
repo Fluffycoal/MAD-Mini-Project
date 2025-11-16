@@ -5,19 +5,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.venuebookingapp.VenueBookingApplication
 import com.example.venuebookingapp.data.local.entity.Booking
 import com.example.venuebookingapp.data.local.entity.Venue
 import com.example.venuebookingapp.databinding.FragmentVenueDetailBinding
+import com.example.venuebookingapp.ui.adapters.ReviewAdapter // Ensure this import is correct
+import com.example.venuebookingapp.ui.dialogs.AddReviewDialog // Ensure this import is correct
 import com.example.venuebookingapp.ui.viewmodel.BookingViewModel
 import com.example.venuebookingapp.ui.viewmodel.BookingViewModelFactory
 import com.example.venuebookingapp.ui.viewmodel.OperationState
+import com.example.venuebookingapp.ui.viewmodel.ReviewViewModel
+import com.example.venuebookingapp.ui.viewmodel.ReviewViewModelFactory
 import com.example.venuebookingapp.ui.viewmodel.VenueViewModel
 import com.example.venuebookingapp.ui.viewmodel.VenueViewModelFactory
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class VenueDetailFragment : Fragment() {
@@ -25,23 +30,29 @@ class VenueDetailFragment : Fragment() {
     private var _binding: FragmentVenueDetailBinding? = null
     private val binding get() = _binding!!
 
-    // ViewModels for reading venue data and creating a booking
+    // ViewModels for data loading and transactions
     private val venueViewModel: VenueViewModel by viewModels {
         VenueViewModelFactory((requireActivity().application as VenueBookingApplication).venueRepository)
     }
     private val bookingViewModel: BookingViewModel by viewModels {
         BookingViewModelFactory((requireActivity().application as VenueBookingApplication).bookingRepository)
     }
+    private val reviewViewModel: ReviewViewModel by viewModels {
+        ReviewViewModelFactory((requireActivity().application as VenueBookingApplication).reviewRepository)
+    }
+
+    private lateinit var reviewAdapter: ReviewAdapter // Added Review Adapter
 
     private var venueId: Int = -1
     private var clientId: Int = -1
     private lateinit var userRole: String
-    private var currentVenue: Venue? = null // To hold the fetched venue data
+    private var currentVenue: Venue? = null
 
     companion object {
-        private const val ARG_VENUE_ID = "venue_id"
-        private const val ARG_CLIENT_ID = "client_id"
-        private const val ARG_USER_ROLE = "user_role"
+        // NOTE: These keys must match the keys used in MainActivity and VenuesFragment
+        private const val ARG_VENUE_ID = "VENUE_ID"
+        private const val ARG_CLIENT_ID = "USER_ID"
+        private const val ARG_USER_ROLE = "USER_ROLE"
 
         fun newInstance(venueId: Int, clientId: Int, userRole: String) = VenueDetailFragment().apply {
             arguments = Bundle().apply {
@@ -71,13 +82,9 @@ class VenueDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Load Venue Data
         observeVenueDetails()
-
-        // 2. Setup Booking Button
         setupBookingButton()
-
-        // 3. Observe Booking Status (to show success/error)
+        setupReviewUI() // ✅ NEW: Setup Review List and Button
         observeBookingOperation()
 
         // Trigger data load
@@ -86,7 +93,6 @@ class VenueDetailFragment : Fragment() {
 
     private fun observeVenueDetails() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // VenueViewModel needs a function to load a single venue by ID and return a Flow
             venueViewModel.selectedVenue.collect { venue ->
                 venue?.let {
                     currentVenue = it
@@ -97,8 +103,13 @@ class VenueDetailFragment : Fragment() {
                     binding.tvDetailPrice.text = "KES ${it.pricePerDay} / Day"
                     binding.tvDetailAmenities.text = it.amenities
 
-                    if (userRole != "CLIENT") {
+                    if (userRole == "CLIENT") {
+                        binding.btnBookNow.visibility = View.VISIBLE
+                        binding.btnLeaveReview.visibility = View.VISIBLE
+                    } else {
+
                         binding.btnBookNow.visibility = View.GONE
+                        binding.btnLeaveReview.visibility = View.GONE
                     }
                 }
             }
@@ -107,17 +118,52 @@ class VenueDetailFragment : Fragment() {
 
     private fun setupBookingButton() {
         binding.btnBookNow.setOnClickListener {
-            currentVenue?.let {
+            currentVenue?.let { venue ->
+                // Hardcoded booking for quick demo
                 val booking = Booking(
-                    venueId = it.venueId,
+                    venueId = venue.venueId,
                     clientId = clientId,
                     bookingDate = "2026-01-10",
                     startTime = "09:00",
                     endTime = "17:00",
-                    totalAmount = it.pricePerDay,
+                    totalAmount = venue.pricePerDay,
                     createdAt = System.currentTimeMillis()
                 )
                 bookingViewModel.createBooking(booking)
+            }
+        }
+    }
+
+    private fun setupReviewUI() {
+        // 1. Setup Adapter and RecyclerView
+        reviewAdapter = ReviewAdapter()
+        binding.rvReviews.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = reviewAdapter
+        }
+
+        // 2. Load Reviews for this specific venue
+        reviewViewModel.loadReviewsForVenue(venueId)
+
+        // 3. Observe Review List
+        viewLifecycleOwner.lifecycleScope.launch {
+            reviewViewModel.reviews.collect { reviews ->
+                if (reviews.isEmpty()) {
+                    binding.tvNoReviews.visibility = View.VISIBLE
+                    binding.rvReviews.visibility = View.GONE
+                } else {
+                    binding.tvNoReviews.visibility = View.GONE
+                    binding.rvReviews.visibility = View.VISIBLE
+                    reviewAdapter.submitList(reviews)
+                }
+            }
+        }
+
+
+        binding.btnLeaveReview.setOnClickListener {
+            currentVenue?.let { venue ->
+                val dialog = AddReviewDialog.newInstance(venue.venueId, clientId)
+                dialog.show(childFragmentManager, "AddReviewDialog")
             }
         }
     }
@@ -128,7 +174,8 @@ class VenueDetailFragment : Fragment() {
                 when (state) {
                     is OperationState.Success -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                        // Optional: Navigate back to Venues list or My Bookings
+                        // Navigate back to the list screen after a successful booking
+                        parentFragmentManager.popBackStack()
                     }
                     is OperationState.Error -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()

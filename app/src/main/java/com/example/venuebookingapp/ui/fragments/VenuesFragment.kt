@@ -22,6 +22,7 @@ import com.example.venuebookingapp.ui.viewmodel.OperationState
 import com.example.venuebookingapp.ui.viewmodel.VenueViewModel
 import com.example.venuebookingapp.ui.viewmodel.VenueViewModelFactory
 import kotlinx.coroutines.launch
+import com.example.venuebookingapp.ui.fragments.VenueDetailFragment
 
 class VenuesFragment : Fragment() {
 
@@ -84,13 +85,12 @@ class VenuesFragment : Fragment() {
                 when (state) {
                     is OperationState.Success -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-
                         loadVenues()
                     }
                     is OperationState.Error -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
                     }
-                    else -> {} // Do nothing on Idle or Loading
+                    else -> {}
                 }
             }
         }
@@ -100,20 +100,30 @@ class VenuesFragment : Fragment() {
         venueAdapter = VenueAdapter(
             userRole = userRole,
             onVenueClick = { venue ->
-                val fragment = VenueDetailFragment.newInstance(venue.venueId, userId, userRole)
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack(null) // Allows going back to the list
-                    .commit()
+                if (userRole == "CLIENT") {
+                    val fragment = VenueDetailFragment.newInstance(venue.venueId, userId, userRole)
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit()
+                } else {
+                    Toast.makeText(context, "Use the action buttons below.", Toast.LENGTH_SHORT).show()
+                }
             },
             onEditClick = { venue ->
                 showEditVenueDialog(venue)
             },
             onDeleteClick = { venue ->
                 deleteVenue(venue)
+            },
+            onViewReviewsClick = { venue -> // Reviews Button Handler
+                val fragment = VenueDetailFragment.newInstance(venue.venueId, userId, userRole)
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .addToBackStack(null)
+                    .commit()
             }
         )
-
 
         binding.recyclerViewVenues.apply {
             layoutManager = LinearLayoutManager(context)
@@ -140,15 +150,19 @@ class VenuesFragment : Fragment() {
             .show()
     }
 
+    // Manage Search Bar visibility based on userRole
     private fun setupFab() {
-        // Show FAB only for venue owners
         if (userRole == "VENUE_OWNER") {
             binding.fabAddVenue.isVisible = true
             binding.fabAddVenue.setOnClickListener {
                 showAddVenueDialog()
             }
+            binding.layoutSearchBar.visibility = View.GONE
+
         } else {
             binding.fabAddVenue.isVisible = false
+            // Show the Search Bar for the Client
+            binding.layoutSearchBar.visibility = View.VISIBLE
         }
     }
 

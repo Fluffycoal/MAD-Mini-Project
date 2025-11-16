@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.venuebookingapp.R
 import com.example.venuebookingapp.VenueBookingApplication
 import com.example.venuebookingapp.data.local.entity.Venue
 import com.example.venuebookingapp.databinding.FragmentVenueBinding
@@ -99,8 +100,11 @@ class VenuesFragment : Fragment() {
         venueAdapter = VenueAdapter(
             userRole = userRole,
             onVenueClick = { venue ->
-                // TODO: Handle venue click - navigate to details
-                Toast.makeText(context, "Clicked on ${venue.name}", Toast.LENGTH_SHORT).show()
+                val fragment = VenueDetailFragment.newInstance(venue.venueId, userId, userRole)
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .addToBackStack(null) // Allows going back to the list
+                    .commit()
             },
             onEditClick = { venue ->
                 showEditVenueDialog(venue)

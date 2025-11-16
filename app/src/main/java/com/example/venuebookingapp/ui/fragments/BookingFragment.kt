@@ -67,10 +67,22 @@ class BookingsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        bookingAdapter = BookingAdapter { booking ->
-            // Handle click on a booking
-            Toast.makeText(context, "Clicked on booking ${booking.bookingId}", Toast.LENGTH_SHORT).show()
-        }
+        // ✅ CRITICAL FIX: Pass userRole and the two required action lambdas
+        bookingAdapter = BookingAdapter(
+            userRole = userRole, // Pass the role for visibility check
+            onBookingClick = { booking ->
+                // Handle click on a booking (e.g., show details)
+                Toast.makeText(context, "Clicked on booking ${booking.bookingId}", Toast.LENGTH_SHORT).show()
+            },
+            onApproveClick = { booking ->
+                // Trigger the ViewModel to approve this booking ID
+                bookingViewModel.approveBooking(booking.bookingId)
+            },
+            onRejectClick = { booking ->
+                // Trigger the ViewModel to reject this booking ID
+                bookingViewModel.rejectBooking(booking.bookingId)
+            }
+        )
 
         binding.recyclerViewBookings.apply {
             adapter = bookingAdapter
@@ -79,7 +91,7 @@ class BookingsFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        // ✅ CORRECTED: Observes 'bookingViewModel.bookings' directly
+        // ... (Your existing code to observe bookingViewModel.bookings) ...
         viewLifecycleOwner.lifecycleScope.launch {
             bookingViewModel.bookings.collect { bookings ->
                 if (bookings.isEmpty()) {
@@ -103,7 +115,7 @@ class BookingsFragment : Fragment() {
                     is OperationState.Error -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
                     }
-                    else -> {} // Do nothing on Idle or Loading
+                    else -> {}
                 }
             }
         }
@@ -111,6 +123,6 @@ class BookingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // Clear the binding
+        _binding = null
     }
 }

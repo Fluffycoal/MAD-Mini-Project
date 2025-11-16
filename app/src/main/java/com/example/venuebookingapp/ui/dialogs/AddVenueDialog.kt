@@ -1,6 +1,7 @@
 package com.example.venuebookingapp.ui.dialogs
 
 import android.app.Dialog
+import android.util.Log
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,7 +20,7 @@ class AddVenueDialog : DialogFragment() {
     private var onVenueAddedListener: ((Venue) -> Unit)? = null
 
     companion object {
-        private const val ARG_OWNER_ID = "owner_id"
+        private const val ARG_OWNER_ID = "USER_ID"
 
         fun newInstance(ownerId: Int) = AddVenueDialog().apply {
             arguments = Bundle().apply {
@@ -69,6 +70,7 @@ class AddVenueDialog : DialogFragment() {
     }
 
     private fun saveVenue() {
+        Log.d("VenueDebug", "Owner ID passed: $ownerId")
         val name = binding.etVenueName.text.toString().trim()
         val description = binding.etDescription.text.toString().trim()
         val location = binding.etLocation.text.toString().trim()

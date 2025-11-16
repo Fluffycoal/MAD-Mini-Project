@@ -29,10 +29,8 @@ class VenuesFragment : Fragment() {
 
     private lateinit var venueAdapter: VenueAdapter
     private var userId: Int = 0
-    private var userRole: String = "CLIENT" // Default to CLIENT
+    private var userRole: String = "CLIENT"
 
-    // ✅ FIX 1: Correct ViewModel initialization
-    // It now gets the repository from the Application class, following MVVM.
     private val venueViewModel: VenueViewModel by viewModels {
         VenueViewModelFactory(
             (requireActivity().application as VenueBookingApplication).venueRepository
@@ -40,8 +38,8 @@ class VenuesFragment : Fragment() {
     }
 
     companion object {
-        private const val ARG_USER_ID = "user_id"
-        private const val ARG_USER_ROLE = "user_role"
+        private const val ARG_USER_ID = "USER_ID"
+        private const val ARG_USER_ROLE = "USER_ROLE"
 
         fun newInstance(userId: Int, userRole: String) = VenuesFragment().apply {
             arguments = Bundle().apply {
@@ -64,7 +62,7 @@ class VenuesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // ✅ FIX 3: Corrected binding import (com.example... not com.exapmle...)
+
         _binding = FragmentVenueBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -85,6 +83,8 @@ class VenuesFragment : Fragment() {
                 when (state) {
                     is OperationState.Success -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+
+                        loadVenues()
                     }
                     is OperationState.Error -> {
                         Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
@@ -110,7 +110,7 @@ class VenuesFragment : Fragment() {
             }
         )
 
-        // ✅ FIX 2: Use correct XML ID 'recyclerViewVenues'
+
         binding.recyclerViewVenues.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = venueAdapter
@@ -160,11 +160,11 @@ class VenuesFragment : Fragment() {
         lifecycleScope.launch {
             venueViewModel.venues.collect { venues ->
                 if (venues.isEmpty()) {
-                    // ✅ FIX 2: Use correct XML ID 'tvNoVenues'
+
                     binding.tvNoVenues.isVisible = true
                     binding.recyclerViewVenues.isVisible = false
                 } else {
-                    // ✅ FIX 2: Use correct XML IDs
+
                     binding.tvNoVenues.isVisible = false
                     binding.recyclerViewVenues.isVisible = true
                     venueAdapter.submitList(venues)
